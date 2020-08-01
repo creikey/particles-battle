@@ -1,0 +1,60 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://GameConfig.gd" type="Script" id=1]
+[ext_resource path="res://theme.tres" type="Theme" id=2]
+
+[node name="GameConfig" type="VBoxContainer"]
+margin_right = 615.0
+margin_bottom = 143.0
+theme = ExtResource( 2 )
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+error_label_path = NodePath("ErrorLabel")
+username_line_edit_path = NodePath("Username")
+lobby_name_line_edit_path = NodePath("H/V/LobbyName")
+
+[node name="Username" type="LineEdit" parent="."]
+margin_right = 615.0
+margin_bottom = 45.0
+placeholder_text = "Username"
+
+[node name="H" type="HBoxContainer" parent="."]
+margin_top = 49.0
+margin_right = 615.0
+margin_bottom = 143.0
+
+[node name="V" type="VBoxContainer" parent="H"]
+margin_right = 305.0
+margin_bottom = 94.0
+size_flags_horizontal = 3
+
+[node name="LobbyName" type="LineEdit" parent="H/V"]
+margin_right = 305.0
+margin_bottom = 45.0
+placeholder_text = "Lobby"
+
+[node name="JoinButton" type="Button" parent="H/V"]
+margin_top = 49.0
+margin_right = 305.0
+margin_bottom = 94.0
+text = "Join"
+
+[node name="HostButton" type="Button" parent="H"]
+margin_left = 309.0
+margin_right = 615.0
+margin_bottom = 94.0
+size_flags_horizontal = 3
+text = "Host"
+
+[node name="ErrorLabel" type="Label" parent="."]
+visible = false
+margin_right = 615.0
+margin_bottom = 45.0
+custom_colors/font_color = Color( 0.898039, 0.301961, 0.301961, 1 )
+text = "You need a username "
+autowrap = true
+[connection signal="text_changed" from="Username" to="." method="_on_Username_text_changed"]
+[connection signal="pressed" from="H/V/JoinButton" to="." method="_on_JoinButton_pressed"]
+[connection signal="pressed" from="H/HostButton" to="." method="_on_HostButton_pressed"]

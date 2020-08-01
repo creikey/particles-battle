@@ -1,3 +1,5 @@
+# Downloaded libraries
+src/webrtc_debug
 
 # Godot-specific ignores
 .import/
