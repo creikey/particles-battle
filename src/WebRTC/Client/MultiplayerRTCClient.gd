@@ -6,17 +6,17 @@ var rtc_mp: WebRTCMultiplayer = WebRTCMultiplayer.new()
 var sealed = false
 
 func _init():
-	connect("connected", self, "connected")
-	connect("disconnected", self, "disconnected")
+	var _err: int = connect("connected", self, "connected")
+	_err = connect("disconnected", self, "disconnected")
 
-	connect("offer_received", self, "offer_received")
-	connect("answer_received", self, "answer_received")
-	connect("candidate_received", self, "candidate_received")
+	_err = connect("offer_received", self, "offer_received")
+	_err = connect("answer_received", self, "answer_received")
+	_err = connect("candidate_received", self, "candidate_received")
 
-	connect("lobby_joined", self, "lobby_joined")
-	connect("lobby_sealed", self, "lobby_sealed")
-	connect("peer_connected", self, "peer_connected")
-	connect("peer_disconnected", self, "peer_disconnected")
+	_err = connect("lobby_joined", self, "lobby_joined")
+	_err = connect("lobby_sealed", self, "lobby_sealed")
+	_err = connect("peer_connected", self, "peer_connected")
+	_err = connect("peer_disconnected", self, "peer_disconnected")
 
 
 func start(url, lobby = ""):
@@ -30,21 +30,39 @@ func stop():
 	rtc_mp.close()
 	close()
 
+func _get_text_file(n: String) -> String:
+	var file := File.new()
+# warning-ignore:return_value_discarded
+	file.open(str("res://", n), File.READ)
+	var to_return: String = file.get_as_text()
+	file.close()
+	return to_return.dedent().split("\n")[0]
 
 func _create_peer(id):
 	var peer: WebRTCPeerConnection = WebRTCPeerConnection.new()
-	peer.initialize({
-		"iceServers": [ { "urls": ["stun:stun.l.google.com:19302"] } ]
+	var username: String = _get_text_file("turn_username.txt")
+	var credential: String = _get_text_file("turn_password.txt")
+#	print("Username: `", username , "`, Password: `", credentials, "`")
+	var _err: int = peer.initialize({
+		"iceServers": [ 
+			{ "urls": ["stun:stun.l.google.com:19302"] },
+			{
+				"urls": ["turn:particlesturnserver.ddns.net:3478"],
+				"username": username,
+				"credential": credential,
+			}
+		]
 	})
-	peer.connect("session_description_created", self, "_offer_created", [id])
-	peer.connect("ice_candidate_created", self, "_new_ice_candidate", [id])
-	rtc_mp.add_peer(peer, id)
+	_err = peer.connect("session_description_created", self, "_offer_created", [id])
+	_err = peer.connect("ice_candidate_created", self, "_new_ice_candidate", [id])
+	_err = rtc_mp.add_peer(peer, id)
 	if id > rtc_mp.get_unique_id():
-		peer.create_offer()
+		_err = peer.create_offer()
 	return peer
 
 
 func _new_ice_candidate(mid_name, index_name, sdp_name, id):
+# warning-ignore:return_value_discarded
 	send_candidate(id, mid_name, index_name, sdp_name)
 
 
@@ -53,12 +71,17 @@ func _offer_created(type, data, id):
 		return
 	print("created", type)
 	rtc_mp.get_peer(id).connection.set_local_description(type, data)
-	if type == "offer": send_offer(id, data)
-	else: send_answer(id, data)
+	if type == "offer":
+# warning-ignore:return_value_discarded
+		send_offer(id, data)
+	else:
+# warning-ignore:return_value_discarded
+		send_answer(id, data)
 
 
 func connected(id):
 	print("Connected %d" % id)
+# warning-ignore:return_value_discarded
 	rtc_mp.initialize(id, true)
 
 
@@ -76,8 +99,8 @@ func disconnected():
 		stop() # Unexpected disconnect
 
 
-func peer_connected(id):
-	print("Peer connected %d" % id)
+func peer_connected(id: int, username: String):
+	print("Peer connected %d, %s" % [id, username])
 	_create_peer(id)
 
 

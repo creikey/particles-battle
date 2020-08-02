@@ -19,15 +19,17 @@ var peers: Dictionary = {}
 class Peer extends Reference:
 	var id = -1
 	var lobby = ""
+	var username = "error"
 	var time = OS.get_ticks_msec()
 
 	func _init(peer_id):
 		id = peer_id
 
 class Lobby extends Reference:
-	var peers: Array = []
+	var lobby_peers: Array = []
 	var host: int = -1
 	var sealed: bool = false
+	var main_server: WebsocketsRTCServer = null
 	var time = 0
 
 	func _init(host_id: int):
@@ -37,26 +39,34 @@ class Lobby extends Reference:
 		if sealed: return false
 		if not server.has_peer(peer_id): return false
 		var new_peer: WebSocketPeer = server.get_peer(peer_id)
+# warning-ignore:return_value_discarded
 		new_peer.put_packet(("I: %d\n" % (1 if peer_id == host else peer_id)).to_utf8())
-		for p in peers:
+		print()
+		print("Peers: ", main_server.peers)
+		print("Transmitting my username: ", main_server.peers[peer_id].username)
+		for p in lobby_peers:
+#			print("Username: ", main_server.peers[p].username)
 			if not server.has_peer(p):
 				continue
-			server.get_peer(p).put_packet(("N: %d\n" % peer_id).to_utf8())
-			new_peer.put_packet(("N: %d\n" % (1 if p == host else p)).to_utf8())
-		peers.push_back(peer_id)
+			# send the current peer new info
+			server.get_peer(p).put_packet(("N: %d\n%s" % [peer_id, main_server.peers[peer_id].username]).to_utf8())
+			# send the new peer current peer info
+# warning-ignore:return_value_discarded
+			new_peer.put_packet(("N: %d\n%s" % [(1 if p == host else p), main_server.peers[p].username]).to_utf8())
+		lobby_peers.push_back(peer_id)
 		return true
 
 
 	func leave(peer_id, server) -> bool:
-		if not peers.has(peer_id): return false
-		peers.erase(peer_id)
+		if not lobby_peers.has(peer_id): return false
+		lobby_peers.erase(peer_id)
 		var close = false
 		if peer_id == host:
 			# The room host disconnected, will disconnect all peers.
 			close = true
 		if sealed: return close
 		# Notify other peers.
-		for p in peers:
+		for p in lobby_peers:
 			if not server.has_peer(p): return close
 			if close:
 				# Disconnect peers.
@@ -71,24 +81,47 @@ class Lobby extends Reference:
 		# Only host can seal the room.
 		if host != peer_id: return false
 		sealed = true
-		for p in peers:
+		for p in lobby_peers:
 			server.get_peer(p).put_packet("S: \n".to_utf8())
 		time = OS.get_ticks_msec()
 		return true
 
+func _get_adjacent_file(filename: String):
+	return load(ProjectSettings.globalize_path(str("res://", filename)))
+
 func _ready():
-	if OS.has_feature("standalone"):
+	var override_serve_debug: bool = false
+	var args := OS.get_cmdline_args()
+	if args.size() > 0:
+		var processed_args = args
+
+		for i in processed_args.size():
+			processed_args[i] = processed_args[i].trim_prefix("--")
+		
+		if processed_args[0] == "serve-debug":
+			override_serve_debug = true
+		else:
+			server = WebSocketServer.new()
+			
+			server.private_key = _get_adjacent_file(processed_args[1])
+			server.ssl_certificate = _get_adjacent_file(processed_args[2])
+			server.ca_chain = _get_adjacent_file(processed_args[3])
+
+	if OS.has_feature("standalone") and not override_serve_debug:
 		listen(443) # TODO configure ssl stuff
 	else:
 		listen(DEBUG_PORT)
 
 func _init():
+# warning-ignore:return_value_discarded
 	server.connect("data_received", self, "_on_data")
+# warning-ignore:return_value_discarded
 	server.connect("client_connected", self, "_peer_connected")
+# warning-ignore:return_value_discarded
 	server.connect("client_disconnected", self, "_peer_disconnected")
 
 
-func _process(delta):
+func _process(_delta):
 	poll()
 
 
@@ -96,6 +129,7 @@ func listen(port):
 	print("Serving on port: ", port)
 	stop()
 	rand.seed = OS.get_unix_time()
+# warning-ignore:return_value_discarded
 	server.listen(port)
 
 
@@ -124,11 +158,11 @@ func poll():
 				server.disconnect_peer(p)
 
 
-func _peer_connected(id, protocol = ""):
+func _peer_connected(id, _protocol = ""):
 	peers[id] = Peer.new(id)
 
 
-func _peer_disconnected(id, was_clean = false):
+func _peer_disconnected(id, _was_clean = false):
 	var lobby = peers[id].lobby
 	print("Peer %d disconnected from lobby: '%s'" % [id, lobby])
 	if lobby and lobbies.has(lobby):
@@ -136,20 +170,26 @@ func _peer_disconnected(id, was_clean = false):
 		if lobbies[lobby].leave(id, server):
 			# If true, lobby host has disconnected, so delete it.
 			print("Deleted lobby %s" % lobby)
+# warning-ignore:return_value_discarded
 			lobbies.erase(lobby)
+# warning-ignore:return_value_discarded
 	peers.erase(id)
 
 
-func _join_lobby(peer, lobby) -> bool:
+func _join_lobby(peer, lobby, username: String) -> bool:
 	if lobby == "":
 		for _i in range(0, JOIN_CODE_LENGTH):
 			lobby += char(_alfnum[rand.randi_range(0, ALFNUM.length()-1)])
 		lobbies[lobby] = Lobby.new(peer.id)
+		lobbies[lobby].main_server = self
 	elif not lobbies.has(lobby):
 		return false
+	peer.username = username
 	lobbies[lobby].join(peer.id, server)
 	peer.lobby = lobby
+	print("Setting username to ", username)
 	# Notify peer of its lobby
+# warning-ignore:return_value_discarded
 	server.get_peer(peer.id).put_packet(("J: %s\n" % lobby).to_utf8())
 	print("Peer %d joined lobby: '%s'" % [peer.id, lobby])
 	return true
@@ -164,7 +204,7 @@ func _on_data(id):
 func _parse_msg(id) -> bool:
 	var pkt_str: String = server.get_peer(id).get_packet().get_string_from_utf8()
 
-	var req = pkt_str.split("\n", true, 1)
+	var req: Array = pkt_str.split("\n", true, 1)
 	if req.size() != 2: # Invalid request size
 		return false
 
@@ -175,7 +215,7 @@ func _parse_msg(id) -> bool:
 	if type.begins_with("J: "):
 		if peers[id].lobby: # Peer must not have joined a lobby already!
 			return false
-		return _join_lobby(peers[id], type.substr(3, type.length() - 3))
+		return _join_lobby(peers[id], type.substr(3, type.length() - 3), req[1])
 
 	if not peers[id].lobby: # Messages across peers are only allowed in same lobby
 		return false
@@ -208,11 +248,14 @@ func _parse_msg(id) -> bool:
 
 	if type.begins_with("O: "):
 		# Client is making an offer
+# warning-ignore:return_value_discarded
 		server.get_peer(dest_id).put_packet(("O: %d\n%s" % [id, req[1]]).to_utf8())
 	elif type.begins_with("A: "):
 		# Client is making an answer
+# warning-ignore:return_value_discarded
 		server.get_peer(dest_id).put_packet(("A: %d\n%s" % [id, req[1]]).to_utf8())
 	elif type.begins_with("C: "):
 		# Client is making an answer
+# warning-ignore:return_value_discarded
 		server.get_peer(dest_id).put_packet(("C: %d\n%s" % [id, req[1]]).to_utf8())
 	return true

@@ -3,7 +3,7 @@ extends Control
 class_name GameConfig
 
 signal host
-signal join(lobby_code)
+signal join(lobby_code, username)
 
 export (NodePath) var error_label_path
 export (NodePath) var username_line_edit_path
@@ -14,17 +14,40 @@ onready var username_line_edit: LineEdit  = get_node(username_line_edit_path)
 onready var lobby_name_line_edit: LineEdit = get_node(lobby_name_line_edit_path)
 
 enum ERROR_TYPE {
-	username_validation
+	username_validation,
+	lobby_code_validation
 }
 
 var _cur_error_type: int = 0
 var _currently_shown_error_type: int = 0
 
 func _on_JoinButton_pressed():
-	pass # Replace with function body.
+	if not _validate_username(username_line_edit.text):
+		return
+	if not _validate_lobby_code(lobby_name_line_edit.text):
+		return
+	if _is_showing_error():
+		return
+	emit_signal("join", lobby_name_line_edit.text, username_line_edit.text)
 
 func _on_HostButton_pressed():
-	pass # Replace with function body.
+	if not _validate_username(username_line_edit.text):
+		return
+	if _is_showing_error():
+		return
+	emit_signal("host")
+
+func _validate_lobby_code(code: String) -> bool:
+	_cur_error_type = ERROR_TYPE.lobby_code_validation
+	
+	if code.length() != WebsocketsRTCServer.JOIN_CODE_LENGTH:
+		_error(str("Lobby join codes are ", WebsocketsRTCServer.JOIN_CODE_LENGTH, " characters long"))
+		return false
+
+	if _currently_shown_error_type == _cur_error_type:
+		_hide_error()
+	
+	return true
 
 func _validate_username(username: String) -> bool:
 	_cur_error_type = ERROR_TYPE.username_validation
@@ -59,9 +82,17 @@ func _error(reason: String):
 	error_label.text = reason
 	error_label.visible = true
 
+func _is_showing_error() -> bool:
+	return error_label.visible
+
 func _hide_error():
 	error_label.visible = false
 
 func _on_Username_text_changed(new_text):
 # warning-ignore:return_value_discarded
 	_validate_username(new_text)
+
+
+func _on_LobbyName_text_changed(new_text):
+# warning-ignore:return_value_discarded
+	_validate_lobby_code(new_text)

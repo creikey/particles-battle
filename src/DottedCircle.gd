@@ -31,11 +31,11 @@ func _draw():
 	var dash_size_angle: float = (dash_size / circumference) * 2.0 * PI
 	var dash_gap_angle: float = (dash_gap / circumference) * 2.0 * PI
 	while cur_angle < 2.0*PI:
-		_draw_circle_arc(Vector2(), rad2deg(cur_angle), rad2deg(cur_angle + dash_size_angle), color)
+		_draw_circle_arc(Vector2(), rad2deg(cur_angle), rad2deg(cur_angle + dash_size_angle))
 		cur_angle += dash_size_angle + dash_gap_angle
 #		draw_line(_get_pos_from_angle(angle), _get_pos_from_angle(angle + dash_size_angle), color, width)
 
-func _draw_circle_arc(center: Vector2, angle_from: float, angle_to: float, color: Color):
+func _draw_circle_arc(center: Vector2, angle_from: float, angle_to: float):
 	var nb_points: int = int(max(2.0, (6.0 / 200.0) * dash_size))
 	var points_arc := PoolVector2Array()
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://theme.tres" type="Theme" id=1]
 [ext_resource path="res://DottedCircle.gd" type="Script" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://GameConfig.tscn" type="PackedScene" id=4]
 [ext_resource path="res://TitleScreen.gd" type="Script" id=5]
 [ext_resource path="res://WebRTC/Client/MultiplayerRTCClient.gd" type="Script" id=6]
+[ext_resource path="res://LobbyInfo.tscn" type="PackedScene" id=7]
 
 [sub_resource type="DynamicFont" id=1]
 size = 76
@@ -23,8 +24,10 @@ script = ExtResource( 5 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-game_config_path = NodePath("C/V/GameConfig")
-connecting_label_path = NodePath("C/V/ConnectingLabel")
+networking_tabs_path = NodePath("C/V/NetworkingTabs")
+game_config_path = NodePath("C/V/NetworkingTabs/GameConfig")
+connecting_label_path = NodePath("C/V/NetworkingTabs/ConnectingLabel")
+lobby_info_path = NodePath("C/V/NetworkingTabs/LobbyInfo")
 
 [node name="C" type="CenterContainer" parent="."]
 anchor_right = 1.0
@@ -42,7 +45,7 @@ margin_bottom = 540.0
 [node name="DottedCircle" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = 105959.0
+rect_rotation = 262591.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -55,7 +58,7 @@ rotation_speed = 10.0
 [node name="DottedCircle2" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = -94671.2
+rect_rotation = -251370.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,
@@ -71,7 +74,7 @@ inner_cirlce_color = Color( 0.101961, 0.101961, 0.101961, 1 )
 [node name="DottedCircle3" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = 154387.0
+rect_rotation = 388301.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,
@@ -88,7 +91,7 @@ inner_cirlce_color = Color( 0.0745098, 0.0745098, 0.0745098, 1 )
 [node name="DottedCircle4" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = -89878.7
+rect_rotation = -246595.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,
@@ -101,9 +104,9 @@ rotation_speed = -10.0
 
 [node name="V" type="VBoxContainer" parent="C"]
 margin_left = 652.0
-margin_top = 449.0
+margin_top = 400.0
 margin_right = 1267.0
-margin_bottom = 630.0
+margin_bottom = 679.0
 
 [node name="Title" type="Label" parent="C/V"]
 margin_right = 615.0
@@ -121,17 +124,32 @@ custom_colors/font_color = Color( 0.498039, 0.498039, 0.498039, 1 )
 text = "A game by creikey"
 align = 1
 
-[node name="GameConfig" parent="C/V" instance=ExtResource( 4 )]
-visible = false
-margin_top = 136.0
-margin_bottom = 279.0
-
-[node name="ConnectingLabel" type="Label" parent="C/V"]
+[node name="NetworkingTabs" type="TabContainer" parent="C/V"]
 margin_top = 136.0
 margin_right = 615.0
-margin_bottom = 181.0
+margin_bottom = 279.0
+tabs_visible = false
+use_hidden_tabs_for_min_size = true
+
+[node name="GameConfig" parent="C/V/NetworkingTabs" instance=ExtResource( 4 )]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = 0.0
+margin_bottom = 0.0
+
+[node name="ConnectingLabel" type="Label" parent="C/V/NetworkingTabs"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
 text = "Connecting..."
 align = 1
+
+[node name="LobbyInfo" parent="C/V/NetworkingTabs" instance=ExtResource( 7 )]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = 0.0
+margin_bottom = 0.0
 
 [node name="DebugButtons" type="VBoxContainer" parent="."]
 margin_left = 50.0
@@ -158,6 +176,30 @@ text = "Connect to Production"
 
 [node name="Client" type="Node" parent="."]
 script = ExtResource( 6 )
-[connection signal="join" from="C/V/GameConfig" to="." method="_on_GameConfig_join"]
+autojoin = true
+
+[node name="ErrorDialog" type="AcceptDialog" parent="."]
+light_mask = -2147483647
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -284.5
+margin_top = -172.0
+margin_right = 284.5
+margin_bottom = 172.0
+theme = ExtResource( 1 )
+popup_exclusive = true
+window_title = "Error"
+dialog_text = "PC load letter"
+dialog_autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="host" from="C/V/NetworkingTabs/GameConfig" to="." method="_on_GameConfig_host"]
+[connection signal="join" from="C/V/NetworkingTabs/GameConfig" to="." method="_on_GameConfig_join"]
 [connection signal="pressed" from="DebugButtons/HostSignalingButton" to="." method="_on_HostSignalingButton_pressed"]
-[connection signal="websocket_connected" from="Client" to="." method="_on_Client_websocket_connected"]
+[connection signal="disconnected" from="Client" to="." method="_on_Client_disconnected"]
+[connection signal="lobby_joined" from="Client" to="." method="_on_Client_lobby_joined"]
+[connection signal="peer_connected" from="Client" to="." method="_on_Client_peer_connected"]
+[connection signal="peer_disconnected" from="Client" to="." method="_on_Client_peer_disconnected"]

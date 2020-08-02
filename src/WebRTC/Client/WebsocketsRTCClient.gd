@@ -7,13 +7,14 @@ export var lobby = "" # Will create a new lobby if empty.
 
 var client: WebSocketClient = WebSocketClient.new()
 var code = 1000
+var username := "bobby"
 var reason = "Unknown"
 
 signal websocket_connected
 signal lobby_joined(lobby)
 signal connected(id)
 signal disconnected()
-signal peer_connected(id)
+signal peer_connected(id, username)
 signal peer_disconnected(id)
 signal offer_received(id, offer)
 signal answer_received(id, answer)
@@ -21,17 +22,18 @@ signal candidate_received(id, mid, index, sdp)
 signal lobby_sealed()
 
 func _init():
-	client.connect("data_received", self, "_parse_msg")
-	client.connect("connection_established", self, "_connected")
-	client.connect("connection_closed", self, "_closed")
-	client.connect("connection_error", self, "_closed")
-	client.connect("server_close_request", self, "_close_request")
+	var _err: int = client.connect("data_received", self, "_parse_msg")
+	_err = client.connect("connection_established", self, "_connected")
+	_err = client.connect("connection_closed", self, "_closed")
+	_err = client.connect("connection_error", self, "_closed")
+	_err = client.connect("server_close_request", self, "_close_request")
 
 
 func connect_to_url(url):
 	close()
 	code = 1000
 	reason = "Unknown"
+# warning-ignore:return_value_discarded
 	client.connect_to_url(url)
 
 
@@ -39,16 +41,16 @@ func close():
 	client.disconnect_from_host()
 
 
-func _closed(was_clean = false):
+func _closed(_was_clean = false):
 	emit_signal("disconnected")
 
 
-func _close_request(code, reason):
-	self.code = code
-	self.reason = reason
+func _close_request(p_code, p_reason):
+	self.code = p_code
+	self.reason = p_reason
 
 
-func _connected(protocol = ""):
+func _connected(_protocol = ""):
 	emit_signal("websocket_connected")
 	client.get_peer(1).set_write_mode(WebSocketPeer.WRITE_MODE_TEXT)
 	if autojoin:
@@ -83,9 +85,9 @@ func _parse_msg():
 		emit_signal("connected", src_id)
 	elif type.begins_with("N: "):
 		# Client connected
-		emit_signal("peer_connected", src_id)
+		emit_signal("peer_connected", src_id, req[1])
 	elif type.begins_with("D: "):
-		# Client connected
+		# Client disconnected
 		emit_signal("peer_disconnected", src_id)
 	elif type.begins_with("O: "):
 		# Offer received
@@ -103,8 +105,9 @@ func _parse_msg():
 		emit_signal("candidate_received", src_id, candidate[0], int(candidate[1]), candidate[2])
 
 
-func join_lobby(lobby):
-	return client.get_peer(1).put_packet(("J: %s\n" % lobby).to_utf8())
+func join_lobby(lobby_name):
+	print("Joining with username: ", username)
+	return client.get_peer(1).put_packet(("J: %s\n%s" % [lobby_name, username]).to_utf8())
 
 
 func seal_lobby():
@@ -127,7 +130,7 @@ func _send_msg(type, id, data) -> int:
 	return client.get_peer(1).put_packet(("%s: %d\n%s" % [type, id, data]).to_utf8())
 
 
-func _process(delta):
+func _process(_delta):
 	var status: int = client.get_connection_status()
 	if status == WebSocketClient.CONNECTION_CONNECTING or status == WebSocketClient.CONNECTION_CONNECTED:
 		client.poll()

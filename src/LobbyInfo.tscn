@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://theme.tres" type="Theme" id=1]
+[ext_resource path="res://LobbyInfo.gd" type="Script" id=2]
+
+[node name="LobbyInfo" type="VBoxContainer"]
+margin_right = 615.0
+margin_bottom = 143.0
+theme = ExtResource( 1 )
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HostingLabel" type="Label" parent="."]
+margin_right = 615.0
+margin_bottom = 45.0
+text = "Hosting lobby at: df24j"
+
+[node name="CopyToClipboardButton" type="Button" parent="."]
+margin_top = 49.0
+margin_right = 615.0
+margin_bottom = 94.0
+text = "Copy code to clipboard"
+
+[node name="StatusLabel" type="Label" parent="."]
+margin_top = 98.0
+margin_right = 615.0
+margin_bottom = 143.0
+text = "Waiting for somebody to join..."
+autowrap = true
+[connection signal="pressed" from="CopyToClipboardButton" to="." method="_on_CopyToClipboardButton_pressed"]
