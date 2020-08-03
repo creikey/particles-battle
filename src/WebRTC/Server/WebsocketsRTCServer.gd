@@ -2,10 +2,8 @@ extends Node
 
 const TIMEOUT = 1000 # Unresponsive clients times out after 1 sec
 const SEAL_TIME = 10000 # A sealed room will be closed after this time
-const ALFNUM = "abcdefghijklmnopqrstuvwxyz0123456789"
-const JOIN_CODE_LENGTH: int = 6
-const DEBUG_PORT = 4876
-const PRODUCTION_SERVER_ADDRESS = "wss://a-hoy.club"
+const ALFNUM = "abcdefghijklmnopqrstuvwxyz1234"
+const JOIN_CODE_LENGTH: int = 4
 
 class_name WebsocketsRTCServer
 
@@ -90,27 +88,25 @@ func _get_adjacent_file(filename: String):
 	return load(ProjectSettings.globalize_path(str("res://", filename)))
 
 func _ready():
-	var override_serve_debug: bool = false
 	var args := OS.get_cmdline_args()
-	if args.size() > 0:
+
+	if Globals.needs_ssl():
+		if not args.size() > 0:
+			printerr("Unable to enable ssl, need ssl files as args")
+			return
 		var processed_args = args
 
 		for i in processed_args.size():
 			processed_args[i] = processed_args[i].trim_prefix("--")
-		
-		if processed_args[0] == "serve-debug":
-			override_serve_debug = true
-		else:
-			server = WebSocketServer.new()
-			
-			server.private_key = _get_adjacent_file(processed_args[1])
-			server.ssl_certificate = _get_adjacent_file(processed_args[2])
-			server.ca_chain = _get_adjacent_file(processed_args[3])
 
-	if OS.has_feature("standalone") and not override_serve_debug:
-		listen(443) # TODO configure ssl stuff
-	else:
-		listen(DEBUG_PORT)
+#		server = WebSocketServer.new()
+		
+		# 0'th cmdline arg is --serve to force server
+		server.private_key = _get_adjacent_file(processed_args[1])
+		server.ssl_certificate = _get_adjacent_file(processed_args[2])
+		server.ca_chain = _get_adjacent_file(processed_args[3])
+
+	listen(Globals.get_port())
 
 func _init():
 # warning-ignore:return_value_discarded
@@ -140,8 +136,10 @@ func stop():
 
 func poll():
 	if not server.is_listening():
+		print("Server not listening!")
 		return
-
+	if server.get_connection_status() != WebSocketServer.CONNECTION_CONNECTED:
+		print("Erroneous connection status: ", server.get_connection_status())
 	server.poll()
 
 	# Peers timeout.
@@ -159,6 +157,7 @@ func poll():
 
 
 func _peer_connected(id, _protocol = ""):
+	print("Peer connected: ", id)
 	peers[id] = Peer.new(id)
 
 
@@ -177,6 +176,7 @@ func _peer_disconnected(id, _was_clean = false):
 
 
 func _join_lobby(peer, lobby, username: String) -> bool:
+	print("Peer tryna join lobby: ", peer)
 	if lobby == "":
 		for _i in range(0, JOIN_CODE_LENGTH):
 			lobby += char(_alfnum[rand.randi_range(0, ALFNUM.length()-1)])

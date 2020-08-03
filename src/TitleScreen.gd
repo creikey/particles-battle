@@ -26,19 +26,10 @@ func _ready():
 	# start connecting
 #	_connect()
 
-func _connect(lobby: String = "", ip_override: String = ""):
-#	game_config.visible = false
-#	connecting_label.visible = true
+func _connect(lobby: String = ""):
 	networking_tabs.current_tab = 1
-	var target_ip: String = WebsocketsRTCServer.PRODUCTION_SERVER_ADDRESS
-	var target_port: int = 443
-	if not OS.has_feature("standalone"):
-		target_ip = "ws://localhost"
-		target_port = WebsocketsRTCServer.DEBUG_PORT
-	if ip_override != "":
-		target_ip = ip_override
-	var target_url: String = str(target_ip, ":", target_port)
-	print("Connecting to ", target_url)
+	var target_url: String = Globals.get_url()
+	print("Connecting to '", target_url, "'")
 	client.start(target_url, lobby)
 
 func _switch_to_server() -> void:

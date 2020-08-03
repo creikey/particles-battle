@@ -96,3 +96,7 @@ func _on_Username_text_changed(new_text):
 func _on_LobbyName_text_changed(new_text):
 # warning-ignore:return_value_discarded
 	_validate_lobby_code(new_text)
+
+
+func _on_PasteButton_pressed():
+	lobby_name_line_edit.text = OS.clipboard

@@ -50,8 +50,9 @@ func _close_request(p_code, p_reason):
 	self.reason = p_reason
 
 
-func _connected(_protocol = ""):
+func _connected(protocol = ""):
 	emit_signal("websocket_connected")
+	print("Connected with protocol ", protocol)
 	client.get_peer(1).set_write_mode(WebSocketPeer.WRITE_MODE_TEXT)
 	if autojoin:
 		join_lobby(lobby)

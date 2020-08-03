@@ -5,7 +5,7 @@
 
 [node name="GameConfig" type="VBoxContainer"]
 margin_right = 615.0
-margin_bottom = 143.0
+margin_bottom = 239.0
 theme = ExtResource( 2 )
 script = ExtResource( 1 )
 __meta__ = {
@@ -29,6 +29,12 @@ margin_bottom = 143.0
 margin_right = 305.0
 margin_bottom = 94.0
 size_flags_horizontal = 3
+
+[node name="PasteButton" type="Button" parent="H/V"]
+visible = false
+margin_right = 319.0
+margin_bottom = 45.0
+text = "Paste Lobby Code"
 
 [node name="LobbyName" type="LineEdit" parent="H/V"]
 margin_right = 305.0
@@ -56,6 +62,7 @@ custom_colors/font_color = Color( 0.898039, 0.301961, 0.301961, 1 )
 text = "You need a username "
 autowrap = true
 [connection signal="text_changed" from="Username" to="." method="_on_Username_text_changed"]
+[connection signal="pressed" from="H/V/PasteButton" to="." method="_on_PasteButton_pressed"]
 [connection signal="text_changed" from="H/V/LobbyName" to="." method="_on_LobbyName_text_changed"]
 [connection signal="pressed" from="H/V/JoinButton" to="." method="_on_JoinButton_pressed"]
 [connection signal="pressed" from="H/HostButton" to="." method="_on_HostButton_pressed"]
