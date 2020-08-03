@@ -12,7 +12,7 @@ func set_code(new_code):
 func set_connected_user(new_connected_user):
 	connected_user = new_connected_user
 	if connected_user == "":
-		$StatusLabel.text = str("Use disconnected! Waiting for a connection...")
+		$StatusLabel.text = str("User disconnected! Waiting for a connection...")
 	else:
 		$StatusLabel.text = str("User connected! Preparing to fight with ", connected_user, "...")
 
