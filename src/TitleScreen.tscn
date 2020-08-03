@@ -45,7 +45,7 @@ margin_bottom = 540.0
 [node name="DottedCircle" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = 319964.0
+rect_rotation = 320313.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -58,7 +58,7 @@ rotation_speed = 10.0
 [node name="DottedCircle2" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = -309198.0
+rect_rotation = -309522.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,
@@ -74,7 +74,7 @@ inner_cirlce_color = Color( 0.101961, 0.101961, 0.101961, 1 )
 [node name="DottedCircle3" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = 475550.0
+rect_rotation = 476098.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,
@@ -91,7 +91,7 @@ inner_cirlce_color = Color( 0.0745098, 0.0745098, 0.0745098, 1 )
 [node name="DottedCircle4" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = -304503.0
+rect_rotation = -304851.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,

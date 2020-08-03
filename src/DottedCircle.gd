@@ -11,7 +11,7 @@ export var width: float = 3.0
 export var rotation_speed: float = 180.0
 export var inner_circle: bool = false
 export var inner_cirlce_color := Color(0.2, 0.2, 0.2)
-export var paused: bool = false
+export var paused: bool = true
 #export var polyline_resolution: int = 12
 
 var _redraw_timer: float = 0.0
