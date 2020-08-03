@@ -11,12 +11,17 @@ export var width: float = 3.0
 export var rotation_speed: float = 180.0
 export var inner_circle: bool = false
 export var inner_cirlce_color := Color(0.2, 0.2, 0.2)
+export var paused: bool = false
 #export var polyline_resolution: int = 12
 
 var _redraw_timer: float = 0.0
 
+func _ready():
+	paused = false
+
 func _process(delta: float):
-	rect_rotation += delta*rotation_speed
+	if not paused:
+		rect_rotation += delta*rotation_speed
 	if Engine.editor_hint:
 		_redraw_timer += delta
 		if _redraw_timer > (1.0 / 6.0):
