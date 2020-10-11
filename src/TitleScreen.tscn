@@ -45,7 +45,7 @@ margin_bottom = 540.0
 [node name="DottedCircle" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = 320313.0
+rect_rotation = 327262.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -54,11 +54,12 @@ dash_size = 20.0
 dash_gap = 50.0
 radius = 500.0
 rotation_speed = 10.0
+paused = false
 
 [node name="DottedCircle2" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = -309522.0
+rect_rotation = -316471.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,
@@ -70,11 +71,12 @@ radius = 450.0
 rotation_speed = -10.0
 inner_circle = true
 inner_cirlce_color = Color( 0.101961, 0.101961, 0.101961, 1 )
+paused = false
 
 [node name="DottedCircle3" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = 476098.0
+rect_rotation = 486960.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,
@@ -87,11 +89,12 @@ width = 4.0
 rotation_speed = 15.0
 inner_circle = true
 inner_cirlce_color = Color( 0.0745098, 0.0745098, 0.0745098, 1 )
+paused = false
 
 [node name="DottedCircle4" type="Control" parent="C/DottedCircles"]
 margin_right = 40.0
 margin_bottom = 40.0
-rect_rotation = -304851.0
+rect_rotation = -311800.0
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false,
@@ -101,6 +104,7 @@ dash_size = 5.0
 dash_gap = 20.0
 radius = 400.0
 rotation_speed = -10.0
+paused = false
 
 [node name="V" type="VBoxContainer" parent="C"]
 margin_left = 652.0
@@ -169,6 +173,7 @@ __meta__ = {
 }
 
 [node name="ConnectToProdButton" type="Button" parent="DebugButtons"]
+visible = false
 margin_top = 49.0
 margin_right = 475.0
 margin_bottom = 94.0
